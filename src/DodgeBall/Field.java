@@ -87,19 +87,27 @@ public class Field {
 		}
 		if(var % 2 != 0 && opt.equals("balls")) var++; //just to make sure n_balls is even
 		for(int i=0; i<var/2 ; i++){
-			int x1 = random.nextInt(nX/2); 
+			int x1 = random.nextInt(nX); 
 			int y1 = random.nextInt(nY/2);
 			if(opt.equals("balls"))
 				balls.add(new Ball(new Point(x1, y1), Color.RED));
-			else if(opt.equals("agents"))
-				agents.add(new Agent(new Point(x1, y1), Color.GREEN));
+			else if(opt.equals("agents")){
+				Agent ag = new Agent(new Point(x1, y1), Color.GREEN);
+				ag.direction = 0;
+				agents.add(ag);
+			}
+				
 
-			int x2 = random.nextInt(nX-nX/2) + nX/2; 
+			int x2 = random.nextInt(nX); 
 			int y2 = random.nextInt(nY-nY/2) + nY/2;
 			if(opt.equals("balls"))
 				balls.add(new Ball(new Point(x2, y2), Color.RED));
-			else if(opt.equals("agents"))
-				agents.add(new Agent(new Point(x2, y2), Color.BLUE));	
+			else if(opt.equals("agents")){
+				Agent ag = new Agent(new Point(x2, y2), Color.BLUE);
+				ag.direction = 180;
+				agents.add(ag);	
+			}
+				
 		}
 	}
 
