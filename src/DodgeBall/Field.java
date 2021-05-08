@@ -19,11 +19,12 @@ public class Field {
 	public static int nX = 10, nY = 10;
 	private static Block[][] board;
 	private static Entity[][] objects;
-	private static List<Agent> agents;
+	private static List<ReactiveAgent> agents;
 	private static List<Ball> balls;
 
-	private static int n_agents = 4;
+	private static int n_agents = 2;
 	private static int n_balls = 2;
+	public static int ball_step = 1;
 	private static Random random;
 	
 	
@@ -45,12 +46,12 @@ public class Field {
 
 		
 		/** C: create agents */
-		agents = new ArrayList<Agent>();
+		agents = new ArrayList<ReactiveAgent>();
 		placeObjects("agents");
 		
 		objects = new Entity[nX][nY];
 		for(Ball ball : balls) objects[ball.point.x][ball.point.y]=ball;
-		for(Agent agent : agents) objects[agent.point.x][agent.point.y]=agent;
+		for(ReactiveAgent agent : agents) objects[agent.point.x][agent.point.y]=agent;
 	}
 	
 	
@@ -58,6 +59,14 @@ public class Field {
 	/****************************
 	 ***** B: BOARD METHODS *****
 	 ****************************/
+
+	public static Entity[] getEntitiesInColumn(int x){
+		Entity[] column = new Entity[nY];
+		for(int y = 0; y < nY; y++)
+			column[y] = objects[x][y];
+		
+		return column;
+	}
 	
 	public static Entity getEntity(Point point) {
 		return objects[point.x][point.y];
@@ -85,14 +94,17 @@ public class Field {
 			case "balls":
 				var = n_balls;
 		}
-		if(var % 2 != 0 && opt.equals("balls")) var++; //just to make sure n_balls is even
+		
+		if(var % 2 != 0 && opt.equals("balls")) 
+			var++; //just to make sure n_balls is even
+		
 		for(int i=0; i<var/2 ; i++){
 			int x1 = random.nextInt(nX); 
 			int y1 = random.nextInt(nY/2);
 			if(opt.equals("balls"))
 				balls.add(new Ball(new Point(x1, y1), Color.RED));
 			else if(opt.equals("agents")){
-				Agent ag = new Agent(new Point(x1, y1), Color.GREEN);
+				ReactiveAgent ag = new ReactiveAgent(new Point(x1, y1), Color.GREEN);
 				ag.direction = 0;
 				agents.add(ag);
 			}
@@ -103,7 +115,7 @@ public class Field {
 			if(opt.equals("balls"))
 				balls.add(new Ball(new Point(x2, y2), Color.RED));
 			else if(opt.equals("agents")){
-				Agent ag = new Agent(new Point(x2, y2), Color.BLUE);
+				ReactiveAgent ag = new ReactiveAgent(new Point(x2, y2), Color.BLUE);
 				ag.direction = 180;
 				agents.add(ag);	
 			}
@@ -162,7 +174,8 @@ public class Field {
 
 	public static void step() {
 		removeObjects();
-		for(Agent a : agents) a.agentDecision();
+		for(ReactiveAgent a : agents) a.agentDecision();
+		for(Ball b: balls) b.updatePosition(ball_step);
 		displayObjects();
 		GUI.update();				
 		steps++;
@@ -176,12 +189,12 @@ public class Field {
 	}
 
 	public static void displayObjects(){
-		for(Agent agent : agents) GUI.displayObject(agent);
+		for(ReactiveAgent agent : agents) GUI.displayObject(agent);
 		for(Ball ball : balls) GUI.displayObject(ball);
 	}
 	
 	public static void removeObjects(){
-		for(Agent agent : agents) GUI.removeObject(agent);
+		for(ReactiveAgent agent : agents) GUI.removeObject(agent);
 		for(Ball ball : balls) GUI.removeObject(ball);
 	}
 	

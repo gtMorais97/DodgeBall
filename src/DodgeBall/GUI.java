@@ -49,13 +49,11 @@ public class GUI extends JFrame {
             for(Entity entity : entities) {
 	            g.setColor(entity.color);
 	            if(entity instanceof Ball) {
-					System.out.println("drawing ball");
 	            	g.fillOval(15, 15, 20, 20);
 		            g.setColor(Color.white);
 	            	g.drawOval(15, 15, 20, 20);
 	            } else {
-					System.out.println("drawing agent");
-	        		switch(((Agent)entity).direction) {
+	        		switch(entity.direction) {
 		    			case 0:  g.fillPolygon(new int[]{10, 25, 40}, new int[]{40, 10, 40}, 3); break;
 		    			case 90: g.fillPolygon(new int[]{10, 40, 10}, new int[]{10, 25, 40}, 3); break;
 		    			case 180:g.fillPolygon(new int[]{10, 40, 25}, new int[]{10, 10, 40}, 3); break;
@@ -67,7 +65,7 @@ public class GUI extends JFrame {
 	}
 
 	public GUI() {
-		setTitle("FirePrevention");		
+		setTitle("Dodge Ball");		
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(null);
 		setSize(555, 625);
@@ -105,6 +103,7 @@ public class GUI extends JFrame {
 				p.setBorder(BorderFactory.createLineBorder(Color.white));
 			}
 		}
+		
 	}
 	
 	public void removeObject(Entity object) {
