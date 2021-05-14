@@ -3,6 +3,7 @@ package DodgeBall;
 import java.awt.Color;
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 
@@ -19,12 +20,13 @@ public class Field {
 	public static int nX = 10, nY = 10;
 	private static Block[][] board;
 	private static Entity[][] objects;
-	private static List<ReactiveAgent> agents;
-	private static List<Ball> balls;
+	public static List<ReactiveAgent> agents;
+	public static List<ReactiveAgent> agentsToKill;
+	public static List<Ball> balls;
 
-	private static int n_agents = 2;
-	private static int n_balls = 2;
-	public static int ball_step = 1;
+	private static int team_size = 3;
+	private static int n_balls_per_team = 1;
+	private static int ball_step = 1;
 	private static Random random;
 	
 	
@@ -34,6 +36,7 @@ public class Field {
 	
 	public static void initialize() {
 		random = new Random();
+		agentsToKill = new ArrayList<>();
 		/** A: create board */
 		board = new Block[nX][nY];
 		for(int i=0; i<nX; i++) 
@@ -43,15 +46,17 @@ public class Field {
 		/** B: create balls */
 		balls = new ArrayList<Ball>();
 		placeObjects("balls");
-
+	
 		
 		/** C: create agents */
 		agents = new ArrayList<ReactiveAgent>();
 		placeObjects("agents");
 		
 		objects = new Entity[nX][nY];
-		for(Ball ball : balls) objects[ball.point.x][ball.point.y]=ball;
-		for(ReactiveAgent agent : agents) objects[agent.point.x][agent.point.y]=agent;
+		for(Ball ball : balls) 
+			objects[ball.currentPosition.x][ball.currentPosition.y] = ball;
+		for(ReactiveAgent agent : agents)
+			objects[agent.currentPosition.x][agent.currentPosition.y] = agent;
 	}
 	
 	
@@ -59,6 +64,30 @@ public class Field {
 	/****************************
 	 ***** B: BOARD METHODS *****
 	 ****************************/
+
+	public static boolean gameEnded(){
+		HashSet<Integer> teams = new HashSet<>();
+		for(ReactiveAgent ag: agents){
+			teams.add(ag.team);
+			if(teams.size() > 1)
+				return false;
+		}
+
+		return true;
+	}
+
+	public static void printBoard(){
+		for(int y=nY-1; y>=0 ; y--){
+			for(int x=0; x < nX; x++){
+				if(objects[x][y] instanceof ReactiveAgent)
+					System.out.print("A");
+				else if(objects[x][y] instanceof Ball)
+					System.out.print("B");
+				else System.out.print(".");
+			}
+			System.out.println();
+		}
+	}
 
 	public static Entity[] getEntitiesInColumn(int x){
 		Entity[] column = new Entity[nY];
@@ -74,9 +103,24 @@ public class Field {
 	public static Block getBlock(Point point) {
 		return board[point.x][point.y];
 	}
-	public static void updateEntityPosition(Point point, Point newpoint) {
-		objects[newpoint.x][newpoint.y] = objects[point.x][point.y];
-		objects[point.x][point.y] = null;
+	public static void updateEntityPosition(MovingEntity entity) {
+		if(entity instanceof Ball){
+			System.out.println();
+		}
+		Point old_point = entity.currentPosition;
+		Point new_point = entity.nextPosition;
+
+		if(old_point.equals(new_point)) return;
+
+		if(getEntity(new_point) instanceof ReactiveAgent && entity instanceof Ball){
+			ReactiveAgent ag  =(ReactiveAgent) getEntity(new_point);
+			agentsToKill.add(ag);
+		}
+			
+
+		objects[new_point.x][new_point.y] = objects[old_point.x][old_point.y];
+		objects[old_point.x][old_point.y] = null;
+		
 	}	
 	public static void removeEntity(Point point) {
 		objects[point.x][point.y] = null;
@@ -85,39 +129,41 @@ public class Field {
 		objects[point.x][point.y] = entity;
 	}
 
+	public static void killAgents(){
+		for(ReactiveAgent ag: agentsToKill){
+			//removeEntity(ag.currentPosition);
+			agents.remove(ag);
+			GUI.removeObject(ag);
+		}
+		agentsToKill.clear();
+	}
+
 	private static void placeObjects(String opt){
 		int var = 1;
 		switch(opt){
 			case "agents":
-				var = n_agents;
+				var = team_size*2;
 				break;
 			case "balls":
-				var = n_balls;
+				var = n_balls_per_team*2;
 		}
-		
-		if(var % 2 != 0 && opt.equals("balls")) 
-			var++; //just to make sure n_balls is even
 		
 		for(int i=0; i<var/2 ; i++){
 			int x1 = random.nextInt(nX); 
 			int y1 = random.nextInt(nY/2);
 			if(opt.equals("balls"))
-				balls.add(new Ball(new Point(x1, y1), Color.RED));
+				balls.add(new Ball(new Point(x1, y1), Color.RED, -1));
 			else if(opt.equals("agents")){
-				ReactiveAgent ag = new ReactiveAgent(new Point(x1, y1), Color.GREEN);
-				ag.direction = 0;
-				agents.add(ag);
+				agents.add(new ReactiveAgent(new Point(x1, y1), Color.GREEN, 0, 0));
 			}
 				
 
 			int x2 = random.nextInt(nX); 
 			int y2 = random.nextInt(nY-nY/2) + nY/2;
 			if(opt.equals("balls"))
-				balls.add(new Ball(new Point(x2, y2), Color.RED));
+				balls.add(new Ball(new Point(x2, y2), Color.RED, -1));
 			else if(opt.equals("agents")){
-				ReactiveAgent ag = new ReactiveAgent(new Point(x2, y2), Color.BLUE);
-				ag.direction = 180;
-				agents.add(ag);	
+				agents.add(new ReactiveAgent(new Point(x2, y2), Color.BLUE, 180, 1));	
 			}
 				
 		}
@@ -143,15 +189,25 @@ public class Field {
 		}
 		
 	    public void run() {
-	    	while(true){
+			int total_games = 0;
+	    	while(total_games < 5){
 	    		step();
+				if(gameEnded()){
+					total_games++;
+					reset();
+				}
 				try {
 					sleep(time);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 	    	}
+			evaluate();
 	    }
+
+		private void evaluate() {
+			System.out.println("evaluating");
+		}
 	}
 	
 	public static void run(int time) {
@@ -175,11 +231,13 @@ public class Field {
 	public static void step() {
 		removeObjects();
 		for(ReactiveAgent a : agents) a.agentDecision();
-		for(Ball b: balls) b.updatePosition(ball_step);
+		for(Ball b: balls) b.getNextPosition(ball_step);
+		killAgents();
 		displayObjects();
-		GUI.update();				
+		GUI.update();			
 		steps++;
 		totalSteps++;
+		printBoard();
 		System.out.println("Step:  " + steps);
 	}
 
@@ -189,8 +247,20 @@ public class Field {
 	}
 
 	public static void displayObjects(){
-		for(ReactiveAgent agent : agents) GUI.displayObject(agent);
-		for(Ball ball : balls) GUI.displayObject(ball);
+		for(ReactiveAgent agent : agents){
+			updateEntityPosition(agent);
+			agent.updatePosition();
+			GUI.displayObject(agent);
+		} 
+		for(Ball ball : balls){
+			if(!ball.beingHeld)
+				updateEntityPosition(ball);
+
+			ball.updatePosition();
+			GUI.displayObject(ball);
+
+			
+		} 
 	}
 	
 	public static void removeObjects(){

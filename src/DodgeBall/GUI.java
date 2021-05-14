@@ -53,7 +53,8 @@ public class GUI extends JFrame {
 		            g.setColor(Color.white);
 	            	g.drawOval(15, 15, 20, 20);
 	            } else {
-	        		switch(entity.direction) {
+					MovingEntity mentity = (MovingEntity) entity;
+	        		switch(mentity.direction) {
 		    			case 0:  g.fillPolygon(new int[]{10, 25, 40}, new int[]{40, 10, 40}, 3); break;
 		    			case 90: g.fillPolygon(new int[]{10, 40, 10}, new int[]{10, 25, 40}, 3); break;
 		    			case 180:g.fillPolygon(new int[]{10, 40, 25}, new int[]{10, 10, 40}, 3); break;
@@ -107,14 +108,14 @@ public class GUI extends JFrame {
 	}
 	
 	public void removeObject(Entity object) {
-		int row=nY-object.point.y-1, col=object.point.x;
+		int row=nY-object.currentPosition.y-1, col=object.currentPosition.x;
 		Cell p = (Cell)boardPanel.getComponent(row*nX+col);
 		p.setBorder(BorderFactory.createLineBorder(Color.white));			
 		p.entities.remove(object);
 	}
 	
 	public void displayObject(Entity object) {
-		int row=nY-object.point.y-1, col=object.point.x;
+		int row=nY-object.currentPosition.y-1, col=object.currentPosition.x;
 		Cell p = (Cell)boardPanel.getComponent(row*nX+col);
 		p.setBorder(BorderFactory.createLineBorder(Color.white));			
 		p.entities.add(object);

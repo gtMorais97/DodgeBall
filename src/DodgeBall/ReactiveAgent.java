@@ -9,13 +9,14 @@ import DodgeBall.Block.Shape;
  * Agent behavior
  * @author Rui Henriques
  */
-public class ReactiveAgent extends Entity {
+public class ReactiveAgent extends MovingEntity {
 
 	public Ball ball;
-	private Point ahead;
+	public int team;
 
-	public ReactiveAgent(Point point, Color color){ 
-		super(point, color);
+	public ReactiveAgent(Point point, Color color, int direction, int team){ 
+		super(point, color, direction);
+		this.team = team;
 	} 
 	
 	
@@ -25,19 +26,19 @@ public class ReactiveAgent extends Entity {
 	
 	public void agentDecision() {
 	  //System.out.println(this.point.toString());
-	  ahead = aheadPosition(1);
+	  aheadPosition = aheadPosition(1);
 	  Ball ball = (Ball) getEntityInSight("ball");
 	  ReactiveAgent agentInSight = (ReactiveAgent) getEntityInSight("agent");
 	  if(ballIncoming(ball)) 
 	  	evade();
 
-	  if(isWall(ahead)) 
+	  else if(isWall(aheadPosition)) 
 	  	rotateRandomly();
 
 	  else if(isBallAhead() && !hasBall()) 
 	  	grabBall();
 
-	  else if(hasBall() && enemyAgent(agentInSight))
+	  else if(hasBall() && isEnemyAgent(agentInSight))
 		throwBall();
 
 	  else if(!isFreeCell()) 
@@ -65,31 +66,44 @@ public class ReactiveAgent extends Entity {
 
 	/* Check if the cell ahead is floor (which means not a wall, not a shelf nor a ramp) and there are any robot there */
 	public boolean isFreeCell() {
-		if(isWall(ahead)) return false;
-		if(Field.getBlock(ahead).shape.equals(Shape.free) && !crossingMidField())
-			if(Field.getEntity(ahead)==null) return true;
+		if(isWall(aheadPosition)) return false;
+		if(Field.getBlock(aheadPosition).shape.equals(Shape.free) && !crossingMidField()){
+			if(Field.getEntity(aheadPosition)==null){
+				for(ReactiveAgent ag: Field.agents){
+					if(ag.nextPosition.equals(this.aheadPosition) && !ag.equals(this))
+						return false;
+				}
+				for(Ball b: Field.balls){
+					if(b.nextPosition.equals(this.aheadPosition))
+						return false;
+				}
+				return true;
+			} 
+		}
+			
 		return false;
 	}
 
 	private boolean crossingMidField(){
-		return (point.y == Field.nY/2 && ahead.y == Field.nY/2 - 1) || (point.y == Field.nY/2-1 && ahead.y == Field.nY/2);
+		return (currentPosition.y == Field.nY/2 && aheadPosition.y == Field.nY/2 - 1) 
+				|| (currentPosition.y == Field.nY/2-1 && aheadPosition.y == Field.nY/2);
 	}
 
 	/* Check if the cell ahead contains a ball */
 	public boolean isBallAhead(){
-		Entity entity = Field.getEntity(ahead);
+		Entity entity = Field.getEntity(aheadPosition);
 		return entity!=null && entity instanceof Ball;
 	}
 
 	/* Check if the cell ahead is a shelf */
 	public boolean isCover() {
-		Block block = Field.getBlock(ahead);
+		Block block = Field.getBlock(aheadPosition);
 		return block.shape.equals(Shape.cover);
 	}
 
 	private Entity getEntityInSight(String opt) {
 		
-		Entity[] column = Field.getEntitiesInColumn(point.x);
+		Entity[] column = Field.getEntitiesInColumn(currentPosition.x);
 		for(int i=0; i<column.length ; i++){
 			if(column[i] != null){
 				if((column[i] instanceof ReactiveAgent && !column[i].equals(this) && opt.equals("agent"))
@@ -108,12 +122,10 @@ public class ReactiveAgent extends Entity {
 		return ball.direction == 0 ||  ball.direction == 180;
 	}
 
-	private boolean enemyAgent(ReactiveAgent agent) {
+	private boolean isEnemyAgent(ReactiveAgent agent) {
 		if(agent == null) return false;
 
-		if(point.y < Field.nY/2){               //if this agent is on the top part of the field, 
-			return agent.point.y >= Field.nY/2; //verify if the other agent is on the bottom part
-		}else return agent.point.y < Field.nY/2;
+		return agent.team != this.team;
 			
 	}
 
@@ -139,22 +151,23 @@ public class ReactiveAgent extends Entity {
 	}
 	
 	/* Move agent forward */
+	@Override
 	public void moveAhead() {
-		Field.updateEntityPosition(point,ahead);
+		//Field.updateEntityPosition(currentPosition,aheadPosition);
 		if(hasBall()) 
-			ball.moveBall(ahead);
-		point = ahead;
+			ball.moveBall(Utils.copyPoint(aheadPosition));
+		this.nextPosition = Utils.copyPoint(aheadPosition);
 	}
 
 	/* Grab ball */
 	public void grabBall() {
-	  ball = (Ball) Field.getEntity(ahead);
-	  ball.grabBall(point);
+	  ball = (Ball) Field.getEntity(aheadPosition);
+	  ball.grabBall(Utils.copyPoint(currentPosition));
 	}
 
 	/* Drop ball */
 	public void dropBall() {
-		ball.dropBall(ahead);
+		ball.dropBall(Utils.copyPoint(aheadPosition));
 	    ball = null;
 	}
 
@@ -167,8 +180,22 @@ public class ReactiveAgent extends Entity {
 	}
 
 	private void throwBall() {
-		this.ball.direction = this.direction;
-		dropBall();
+		//rotate agent towards the enemy
+		if(lowerField() && this.direction != 0)
+			this.direction = 0;
+		else if(!lowerField() && this.direction != 180)
+			this.direction = 180;
+		this.aheadPosition = aheadPosition(1);
+		if(ball.isFreeCell(this.aheadPosition)){
+			this.ball.direction = this.direction;
+			dropBall();
+		}
+		
+	}
+
+	/*wether agent is the lower part of the field */
+	private boolean lowerField(){
+		return this.currentPosition.y < Field.nY/2;
 	}
 	
 }
