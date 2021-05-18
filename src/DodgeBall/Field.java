@@ -2,6 +2,8 @@ package DodgeBall;
 
 import java.awt.Color;
 import java.awt.Point;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -20,8 +22,8 @@ public class Field {
 	public static int nX = 10, nY = 10;
 	private static Block[][] board;
 	private static Entity[][] objects;
-	public static List<ReactiveAgent> agents;
-	public static List<ReactiveAgent> agentsToKill;
+	public static List<Agent> agents;
+	public static List<Agent> agentsToKill;
 	public static List<Ball> balls;
 
 	private static int team_size = 3;
@@ -49,13 +51,13 @@ public class Field {
 	
 		
 		/** C: create agents */
-		agents = new ArrayList<ReactiveAgent>();
+		agents = new ArrayList<Agent>();
 		placeObjects("agents");
 		
 		objects = new Entity[nX][nY];
 		for(Ball ball : balls) 
 			objects[ball.currentPosition.x][ball.currentPosition.y] = ball;
-		for(ReactiveAgent agent : agents)
+		for(Agent agent : agents)
 			objects[agent.currentPosition.x][agent.currentPosition.y] = agent;
 	}
 	
@@ -67,7 +69,7 @@ public class Field {
 
 	public static boolean gameEnded(){
 		HashSet<Integer> teams = new HashSet<>();
-		for(ReactiveAgent ag: agents){
+		for(Agent ag: agents){
 			teams.add(ag.team);
 			if(teams.size() > 1)
 				return false;
@@ -130,7 +132,7 @@ public class Field {
 	}
 
 	public static void killAgents(){
-		for(ReactiveAgent ag: agentsToKill){
+		for(Agent ag: agentsToKill){
 			//removeEntity(ag.currentPosition);
 			agents.remove(ag);
 			GUI.removeObject(ag);
@@ -190,7 +192,7 @@ public class Field {
 		
 	    public void run() {
 			int total_games = 0;
-	    	while(total_games < 5){
+	    	while(total_games < 3){
 	    		step();
 				if(gameEnded()){
 					total_games++;
@@ -206,7 +208,22 @@ public class Field {
 	    }
 
 		private void evaluate() {
-			System.out.println("evaluating");
+			double averageGameLenght = counter.stream()
+										   .mapToInt(i -> i)
+										   .average()
+										   .orElse(0);
+			
+			try {
+				String filename = "evaluations/reactive.txt";
+				FileWriter writer = new FileWriter(filename);
+
+				writer.write("Average game length: " + averageGameLenght);
+				
+				writer.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+				System.err.println("Error creating evaluation file");
+			}
 		}
 	}
 	
@@ -230,7 +247,7 @@ public class Field {
 
 	public static void step() {
 		removeObjects();
-		for(ReactiveAgent a : agents) a.agentDecision();
+		for(Agent a : agents) a.agentDecision();
 		for(Ball b: balls) b.getNextPosition(ball_step);
 		killAgents();
 		displayObjects();
@@ -247,7 +264,7 @@ public class Field {
 	}
 
 	public static void displayObjects(){
-		for(ReactiveAgent agent : agents){
+		for(Agent agent : agents){
 			updateEntityPosition(agent);
 			agent.updatePosition();
 			GUI.displayObject(agent);
@@ -264,7 +281,7 @@ public class Field {
 	}
 	
 	public static void removeObjects(){
-		for(ReactiveAgent agent : agents) GUI.removeObject(agent);
+		for(Agent agent : agents) GUI.removeObject(agent);
 		for(Ball ball : balls) GUI.removeObject(ball);
 	}
 	
