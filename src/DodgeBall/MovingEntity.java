@@ -38,7 +38,5 @@ public class MovingEntity extends Entity{
         this.currentPosition = Utils.copyPoint(nextPosition);
     }
 
-	protected boolean isWall(Point p){
-		return p.x < 0 || p.x > Field.nX-1 || p.y < 0 || p.y > Field.nY -1;
-	}
+	
 }

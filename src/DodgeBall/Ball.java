@@ -25,8 +25,8 @@ public class Ball extends MovingEntity {
 	
 	public void dropBall(Point newpoint) {
 		
-		if(Field.getEntity(newpoint) instanceof ReactiveAgent){
-			ReactiveAgent agent = (ReactiveAgent) Field.getEntity(newpoint);
+		if(Field.getEntity(newpoint) instanceof Agent){
+			Agent agent = (Agent) Field.getEntity(newpoint);
 			Field.agentsToKill.add(agent);
 		}
 		beingHeld = false;
@@ -45,7 +45,7 @@ public class Ball extends MovingEntity {
 		this.aheadPosition = aheadPosition(step);
 		if(aheadPosition == null) return; //ball is not moving
 
-		if(!isWall(aheadPosition)){
+		if(!Field.isWall(aheadPosition)){
 			if(isFreeCell(aheadPosition)){
 				moveAhead();
 			}else this.direction = -1; //stop moving
@@ -55,7 +55,7 @@ public class Ball extends MovingEntity {
 
 	public boolean isFreeCell(Point p) {
 		if(Field.getBlock(p).shape.equals(Shape.free))
-			if(Field.getEntity(p) == null || Field.getEntity(p) instanceof ReactiveAgent) 
+			if(Field.getEntity(p) == null || Field.getEntity(p) instanceof Agent) 
 				return true;
 		return false;
 	}

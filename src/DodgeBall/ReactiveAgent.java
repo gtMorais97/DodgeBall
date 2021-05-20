@@ -21,11 +21,11 @@ public class ReactiveAgent extends Agent {
 	public void agentDecision() {
 	  aheadPosition = aheadPosition(1);
 	  Ball ball = (Ball) getEntityInSight("ball");
-	  ReactiveAgent agentInSight = (ReactiveAgent) getEntityInSight("agent");
+	  Agent agentInSight = (Agent) getEntityInSight("agent");
 	  if(ballIncoming(ball)) 
-	  	evade();
+		evade();
 
-	  else if(isWall(aheadPosition)) 
+	  else if(Field.isWall(aheadPosition)) 
 	  	rotateRandomly();
 
 	  else if(isBallAhead() && !hasBall()) 

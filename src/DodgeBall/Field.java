@@ -23,6 +23,8 @@ public class Field {
 	private static Block[][] board;
 	private static Entity[][] objects;
 	public static List<Agent> agents;
+	public static List<Agent> team1;
+	public static List<Agent> team2;
 	public static List<Agent> agentsToKill;
 	public static List<Ball> balls;
 
@@ -44,28 +46,92 @@ public class Field {
 		for(int i=0; i<nX; i++) 
 			for(int j=0; j<nY; j++) 
 				board[i][j] = new Block(Shape.free, Color.lightGray);
-				
+		
+		objects = new Entity[nX][nY];
+		
 		/** B: create balls */
-		balls = new ArrayList<Ball>();
+		balls = new ArrayList<>();
 		placeObjects("balls");
 	
 		
 		/** C: create agents */
-		agents = new ArrayList<Agent>();
+		agents = new ArrayList<>();
+		team1 = new ArrayList<>();
+		team2 = new ArrayList<>();
 		placeObjects("agents");
 		
-		objects = new Entity[nX][nY];
-		for(Ball ball : balls) 
-			objects[ball.currentPosition.x][ball.currentPosition.y] = ball;
-		for(Agent agent : agents)
-			objects[agent.currentPosition.x][agent.currentPosition.y] = agent;
 	}
 	
-	
-
 	/****************************
 	 ***** B: BOARD METHODS *****
 	 ****************************/
+
+	private static void placeObjects(String opt){
+		int var;
+		switch(opt){
+			case "agents":
+				var = team_size*2;
+				break;
+			case "balls":
+				var = n_balls_per_team*2;
+				break;
+			default:
+				var = 2;
+		}
+		
+		boolean topHalf = true;
+		for(int i=0; i<var/2 ; i++){
+
+			Point p1 = getRandomPoint(topHalf);
+			switch(opt){
+				case "balls":
+					Ball ball = new Ball(p1, Color.RED, -1);
+					balls.add(ball);
+					objects[p1.x][p1.y] = ball;
+					break;
+				case "agents":
+					Agent agent = new HybridAgent(p1, Color.GREEN, 180, 1);
+					agents.add(agent);
+					team1.add(agent);
+					objects[p1.x][p1.y] = agent;
+					
+					break;
+			}
+			
+			
+			
+			Point p2 = getRandomPoint(!topHalf);
+			switch(opt){
+				case "balls":
+					Ball ball = new Ball(p2, Color.RED, -1);
+					balls.add(ball);
+					objects[p2.x][p2.y] = ball;
+					break;
+				case "agents":
+					Agent agent = new ReactiveAgent(p2, Color.BLUE, 0, 2);
+					agents.add(agent);	
+					team2.add(agent);
+					objects[p2.x][p2.y] = agent;
+					break;
+			}
+				
+		}
+	}
+
+	private static Point getRandomPoint(boolean topHalf) {
+		Point p = null;
+		do{
+			int x = random.nextInt(nX);
+			int y = 0;
+			if(topHalf)
+				y = random.nextInt(nY-nY/2) + nY/2;
+			else
+				y = random.nextInt(nY/2);
+			p = new Point(x,y);
+		}while(getEntity(p) != null);
+		
+		return p;
+	}
 
 	public static boolean gameEnded(){
 		HashSet<Integer> teams = new HashSet<>();
@@ -81,7 +147,7 @@ public class Field {
 	public static void printBoard(){
 		for(int y=nY-1; y>=0 ; y--){
 			for(int x=0; x < nX; x++){
-				if(objects[x][y] instanceof ReactiveAgent)
+				if(objects[x][y] instanceof Agent)
 					System.out.print("A");
 				else if(objects[x][y] instanceof Ball)
 					System.out.print("B");
@@ -100,22 +166,24 @@ public class Field {
 	}
 	
 	public static Entity getEntity(Point point) {
+		if(isWall(point)) return null;
 		return objects[point.x][point.y];
 	}
+
+	
+
 	public static Block getBlock(Point point) {
+		if(isWall(point)) return null;
 		return board[point.x][point.y];
 	}
 	public static void updateEntityPosition(MovingEntity entity) {
-		if(entity instanceof Ball){
-			System.out.println();
-		}
 		Point old_point = entity.currentPosition;
 		Point new_point = entity.nextPosition;
 
 		if(old_point.equals(new_point)) return;
 
-		if(getEntity(new_point) instanceof ReactiveAgent && entity instanceof Ball){
-			ReactiveAgent ag  =(ReactiveAgent) getEntity(new_point);
+		if(getEntity(new_point) instanceof Agent && entity instanceof Ball){
+			Agent ag  = (Agent) getEntity(new_point);
 			agentsToKill.add(ag);
 		}
 			
@@ -133,42 +201,57 @@ public class Field {
 
 	public static void killAgents(){
 		for(Agent ag: agentsToKill){
-			//removeEntity(ag.currentPosition);
 			agents.remove(ag);
+			if(ag.team==1) team1.remove(ag);
+			else team2.remove(ag);
 			GUI.removeObject(ag);
 		}
 		agentsToKill.clear();
 	}
 
-	private static void placeObjects(String opt){
-		int var = 1;
-		switch(opt){
-			case "agents":
-				var = team_size*2;
-				break;
-			case "balls":
-				var = n_balls_per_team*2;
-		}
-		
-		for(int i=0; i<var/2 ; i++){
-			int x1 = random.nextInt(nX); 
-			int y1 = random.nextInt(nY/2);
-			if(opt.equals("balls"))
-				balls.add(new Ball(new Point(x1, y1), Color.RED, -1));
-			else if(opt.equals("agents")){
-				agents.add(new ReactiveAgent(new Point(x1, y1), Color.GREEN, 0, 0));
-			}
-				
+	public static boolean isWall(Point p){
+		return p.x < 0 || p.x > nX-1 || p.y < 0 || p.y > nY -1;
+	}
+	
 
-			int x2 = random.nextInt(nX); 
-			int y2 = random.nextInt(nY-nY/2) + nY/2;
-			if(opt.equals("balls"))
-				balls.add(new Ball(new Point(x2, y2), Color.RED, -1));
-			else if(opt.equals("agents")){
-				agents.add(new ReactiveAgent(new Point(x2, y2), Color.BLUE, 180, 1));	
+	public static Point getClosestAgent(Point p, int agentTeam) {
+		double closestDistance = Double.MAX_VALUE;
+		Point closestPoint = null;
+		List<Agent> team = null;
+        if(agentTeam==1) team = team1;
+		else team = team2;
+
+		for(Agent ag: team){
+			double distance = p.distance(ag.currentPosition);
+			if(distance < closestDistance){
+				closestDistance = distance;
+				closestPoint = Utils.copyPoint(ag.currentPosition);
 			}
-				
 		}
+
+		return closestPoint;
+    }
+
+	public static Point getClosestBall(Point p) {
+        double closestDistance = Double.MAX_VALUE;
+		Point closestPoint = null;
+
+		for(Ball ball: balls){
+			if(!(topHalf(p) == topHalf(ball.currentPosition)))
+				continue;
+
+			double distance = p.distance(ball.currentPosition);
+			if(distance < closestDistance){
+				closestDistance = distance;
+				closestPoint = Utils.copyPoint(ball.currentPosition);
+			}
+		}
+
+		return closestPoint;
+    }
+
+	public static boolean topHalf(Point p){
+		return (p.y>=nY/2);
 	}
 
 
@@ -288,4 +371,12 @@ public class Field {
 	public static void associateGUI(GUI graphicalInterface) {
 		GUI = graphicalInterface;
 	}
+
+
+
+    
+
+
+
+    
 }

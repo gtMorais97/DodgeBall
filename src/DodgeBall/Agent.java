@@ -38,7 +38,7 @@ public abstract class Agent extends MovingEntity{
 
 	/* Check if the cell ahead is floor (which means not a wall, not a shelf nor a ramp) and there are any robot there */
 	public boolean isFreeCell() {
-		if(isWall(aheadPosition)) return false;
+		if(Field.isWall(aheadPosition)) return false;
 		if(Field.getBlock(aheadPosition).shape.equals(Shape.free) && !crossingMidField()){
 			if(Field.getEntity(aheadPosition)==null){
 				for(Agent ag: Field.agents){
@@ -78,7 +78,7 @@ public abstract class Agent extends MovingEntity{
 		Entity[] column = Field.getEntitiesInColumn(currentPosition.x);
 		for(int i=0; i<column.length ; i++){
 			if(column[i] != null){
-				if((column[i] instanceof ReactiveAgent && !column[i].equals(this) && opt.equals("agent"))
+				if((column[i] instanceof Agent && !column[i].equals(this) && opt.equals("agent"))
 					|| (column[i] instanceof Ball && opt.equals("ball")) ){
 					return column[i];
 				}
@@ -94,7 +94,7 @@ public abstract class Agent extends MovingEntity{
 		return ball.direction == 0 ||  ball.direction == 180;
 	}
 
-	protected boolean isEnemyAgent(ReactiveAgent agent) {
+	protected boolean isEnemyAgent(Agent agent) {
 		if(agent == null) return false;
 
 		return agent.team != this.team;
@@ -126,15 +126,20 @@ public abstract class Agent extends MovingEntity{
 	@Override
 	public void moveAhead() {
 		//Field.updateEntityPosition(currentPosition,aheadPosition);
+		
 		if(hasBall()) 
 			ball.moveBall(Utils.copyPoint(aheadPosition));
+			
 		this.nextPosition = Utils.copyPoint(aheadPosition);
+		
+		
 	}
 
 	/* Grab ball */
 	public void grabBall() {
 	  ball = (Ball) Field.getEntity(aheadPosition);
-	  ball.grabBall(Utils.copyPoint(currentPosition));
+	  if (ball != null)
+	  	ball.grabBall(Utils.copyPoint(currentPosition));
 	}
 
 	/* Drop ball */
