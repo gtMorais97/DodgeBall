@@ -49,16 +49,16 @@ public abstract class Agent extends MovingEntity{
 	}
 
 	/* Check if the cell ahead is floor (which means not a wall, not a shelf nor a ramp) and there are any robot there */
-	public boolean isFreeCell() {
-		if(Field.isWall(aheadPosition)) return false;
-		if(Field.getBlock(aheadPosition).shape.equals(Shape.free) && !crossingMidField()){
-			if(Field.getEntity(aheadPosition)==null){
+	public boolean isFreeCell(Point p) {
+		if(Field.isWall(p)) return false;
+		if(Field.getBlock(p).shape.equals(Shape.free) && !crossingMidField()){
+			if(Field.getEntity(p)==null){
 				for(Agent ag: Field.agents){
-					if(ag.nextPosition.equals(this.aheadPosition) && !ag.equals(this))
+					if(ag.nextPosition.equals(p) && !ag.equals(this))
 						return false;
 				}
 				for(Ball b: Field.balls){
-					if(b.nextPosition.equals(this.aheadPosition))
+					if(b.nextPosition.equals(p))
 						return false;
 				}
 				return true;
@@ -190,7 +190,7 @@ public abstract class Agent extends MovingEntity{
 
 	/* Evade ball */
 	protected void evade() {
-		if((direction == 90 || direction == 270) && isFreeCell()) //if looking right or left, move
+		if((direction == 90 || direction == 270) && isFreeCell(aheadPosition)) //if looking right or left, move
 			moveAhead();
 		else
 			rotateRandomly();

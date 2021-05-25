@@ -1,1 +1,4 @@
-Average game length: 164.83333333333334
+Average game length: 197.33333333333334
+
+1:1
+2:2

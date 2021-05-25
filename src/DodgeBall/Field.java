@@ -2,11 +2,14 @@ package DodgeBall;
 
 import java.awt.Color;
 import java.awt.Point;
+import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 import DodgeBall.Block.Shape;
@@ -134,14 +137,7 @@ public class Field {
 	}
 
 	public static boolean gameEnded(){
-		HashSet<Integer> teams = new HashSet<>();
-		for(Agent ag: agents){
-			teams.add(ag.team);
-			if(teams.size() > 1)
-				return false;
-		}
-
-		return true;
+		return team1.isEmpty() || team2.isEmpty();
 	}
 
 	public static void printBoard(){
@@ -275,17 +271,25 @@ public class Field {
 	public static class RunThread extends Thread {
 		
 		int time;
+		HashMap<Integer, Integer> score;
 
 		public RunThread(int time){
 			this.time = time*time;
 		}
 		
 	    public void run() {
-			int total_games = 0;
-	    	while(total_games < 3){
+			int total_games = 5;
+
+			score = new HashMap<>();
+			score.put(1,0);
+			score.put(2,0);
+
+			int gameCounter = 0;
+	    	while(gameCounter < total_games){
 	    		step();
 				if(gameEnded()){
-					total_games++;
+					gameCounter++;
+					updateScore();
 					reset();
 				}
 				try {
@@ -297,6 +301,13 @@ public class Field {
 			evaluate();
 	    }
 
+		private void updateScore() {
+			if(!team1.isEmpty()) 
+				score.computeIfPresent(1, (k,v) -> v+1);
+			else if(!team2.isEmpty()) 
+				score.computeIfPresent(2, (k,v) -> v+1);
+		}
+
 		private void evaluate() {
 			double averageGameLenght = counter.stream()
 										   .mapToInt(i -> i)
@@ -304,10 +315,21 @@ public class Field {
 										   .orElse(0);
 			
 			try {
-				String filename = "evaluations/reactive.txt";
-				FileWriter writer = new FileWriter(filename);
+				
+				String filename = "evaluations/hybridVSreactive.txt";
+				BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
 
 				writer.write("Average game length: " + averageGameLenght);
+				writer.newLine(); 
+				writer.newLine();
+
+				writer.write("Score");
+				writer.newLine();
+				for(Map.Entry<Integer,Integer> entry : score.entrySet()){
+					writer.write(entry.getKey() + ":"
+									+ entry.getValue());
+					writer.newLine();
+				}
 				
 				writer.close();
 			} catch (IOException e) {

@@ -33,7 +33,7 @@ public class ReactiveAgent extends Agent {
 	  else if(hasBall() && containsAgentFromTeam(oppositeTeam()))
 			throwBall();
 
-	  else if(!isFreeCell()) 
+	  else if(!isFreeCell(aheadPosition)) 
 	  	rotateRandomly();
 
 	  else if(random.nextInt(5) == 0) 

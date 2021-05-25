@@ -95,7 +95,7 @@ public class HybridAgent extends Agent {
 
                 throwBall();
 
-        else if(!isFreeCell()) 
+        else if(!isFreeCell(aheadPosition)) 
             rotateRandomly();
 
         else if(random.nextInt(5) == 0) 
@@ -181,7 +181,7 @@ public class HybridAgent extends Agent {
                 return !hasBall() && Field.getEntity(aheadPosition) instanceof Ball;
             
             case moveAhead:
-                return isFreeCell();
+                return isFreeCell(aheadPosition);
 
             default: return true;
         }
@@ -314,11 +314,12 @@ public class HybridAgent extends Agent {
 	        Point pt = curr.point; 
 			//System.out.println(">"+pt);
 	        for (int i = 0; i < 4; i++) { 
-	            int x = pt.x + row[i], y = pt.y + col[i]; 
+                int x = pt.x + row[i], y = pt.y + col[i];
+                Point p = new Point(x,y);
     	        if(x==dest.x && y==dest.y) return new Node(dest,curr); 
-	            if(!Field.isWall(new Point(x,y)) && !visited[x][y]){ 
+	            if(!Field.isWall(p) && Field.getEntity(p) == null && !visited[x][y]){ 
 	                visited[x][y] = true; 
-	    	        q.add(new Node(new Point(x,y), curr)); 
+	    	        q.add(new Node(p, curr)); 
 	            } 
 	        }
 	    }
