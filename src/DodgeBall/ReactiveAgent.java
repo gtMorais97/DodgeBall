@@ -19,10 +19,9 @@ public class ReactiveAgent extends Agent {
 	 **********************/
 	
 	public void agentDecision() {
-	  aheadPosition = aheadPosition(1);
-	  Ball ball = (Ball) getEntityInSight("ball");
-	  Agent agentInSight = (Agent) getEntityInSight("agent");
-	  if(ballIncoming(ball)) 
+		updateBeliefs();
+		
+	  if(ballIncoming(ballsInSight)) 
 		evade();
 
 	  else if(Field.isWall(aheadPosition)) 
@@ -31,8 +30,8 @@ public class ReactiveAgent extends Agent {
 	  else if(isBallAhead() && !hasBall()) 
 	  	grabBall();
 
-	  else if(hasBall() && isEnemyAgent(agentInSight))
-		throwBall();
+	  else if(hasBall() && containsAgentFromTeam(oppositeTeam()))
+			throwBall();
 
 	  else if(!isFreeCell()) 
 	  	rotateRandomly();

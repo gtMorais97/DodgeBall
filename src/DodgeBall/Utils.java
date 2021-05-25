@@ -1,6 +1,7 @@
 package DodgeBall;
 
 import java.awt.Point;
+import java.util.List;
 
 public class Utils {
 
@@ -8,4 +9,7 @@ public class Utils {
         return new Point(p.x, p.y);
     }
     
+    public static <T> List<T> cast(List list) {
+        return list;
+    }
 }

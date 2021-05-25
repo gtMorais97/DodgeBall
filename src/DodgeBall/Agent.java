@@ -2,6 +2,8 @@ package DodgeBall;
 
 import java.awt.Color;
 import java.awt.Point;
+import java.util.ArrayList;
+import java.util.List;
 
 import DodgeBall.Block.Shape;
 
@@ -9,6 +11,9 @@ public abstract class Agent extends MovingEntity{
 
     public Ball ball;
 	public int team;
+
+	protected List<Ball> ballsInSight;
+    protected List<Agent> agentsInSight;
 
 	public Agent(Point point, Color color, int direction, int team){ 
 		super(point, color, direction);
@@ -26,6 +31,13 @@ public abstract class Agent extends MovingEntity{
 	/********************/
 	/**** B: sensors ****/
 	/********************/
+
+	protected void updateBeliefs(){
+        aheadPosition = aheadPosition(1);
+        ballsInSight = Utils.cast(getEntitiesInSight("ball"));
+        agentsInSight = Utils.cast(getEntitiesInSight("agent"));
+    }
+
 	/* Check if agent is carrying box */
 	public boolean hasBall() {
 		return ball != null;
@@ -73,32 +85,55 @@ public abstract class Agent extends MovingEntity{
 		return block.shape.equals(Shape.cover);
 	}
 
-	protected Entity getEntityInSight(String opt) {
+	protected List<Entity> getEntitiesInSight(String opt) {
 		
 		Entity[] column = Field.getEntitiesInColumn(currentPosition.x);
+
+		List<Entity> entities = new ArrayList<>();
 		for(int i=0; i<column.length ; i++){
 			if(column[i] != null){
 				if((column[i] instanceof Agent && !column[i].equals(this) && opt.equals("agent"))
 					|| (column[i] instanceof Ball && opt.equals("ball")) ){
-					return column[i];
+					
+					if(opt.equals("ball"))
+						entities.add((Ball)column[i]);
+					else if(opt.equals("agent"))
+						entities.add((Agent)column[i]);
 				}
 			}	
 		}
-		return null;
+		return entities;
 	}
 
-	protected boolean ballIncoming(Ball ball){
-		if(ball == null) 
+	protected boolean ballIncoming(List<Ball> balls){
+		if(balls.isEmpty()) 
 			return false;
 
-		return ball.direction == 0 ||  ball.direction == 180;
+		for(Ball ball: balls){
+			if(ball.direction == 0 ||  ball.direction == 180)
+				return true;
+		}
+		return false;
 	}
 
-	protected boolean isEnemyAgent(Agent agent) {
-		if(agent == null) return false;
+	protected boolean containsAgentFromTeam(int team) {
+		if(agentsInSight.isEmpty()) 
+			return false;
 
-		return agent.team != this.team;
+		for(Agent agent: agentsInSight){
+			if(agent.team == team)
+				return true;
+		}
+		return false;
 			
+	}
+
+	public int oppositeTeam(){
+		switch(this.team){
+			case 1: return 2;
+			case 2: return 1;
+			default: return 0;
+		}
 	}
 
 	/**********************/
@@ -144,7 +179,12 @@ public abstract class Agent extends MovingEntity{
 
 	/* Drop ball */
 	public void dropBall() {
-		ball.dropBall(Utils.copyPoint(aheadPosition));
+		Point dropPoint;
+		if(ball.isFreeCell(aheadPosition))
+			dropPoint = Utils.copyPoint(aheadPosition);
+		else dropPoint = Utils.copyPoint(currentPosition);
+
+		ball.dropBall(dropPoint);
 	    ball = null;
 	}
 

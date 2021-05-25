@@ -201,9 +201,15 @@ public class Field {
 
 	public static void killAgents(){
 		for(Agent ag: agentsToKill){
+			if(ag.hasBall())
+				ag.dropBall();
+
 			agents.remove(ag);
-			if(ag.team==1) team1.remove(ag);
+
+			if(ag.team==1) 
+				team1.remove(ag);
 			else team2.remove(ag);
+
 			GUI.removeObject(ag);
 		}
 		agentsToKill.clear();
@@ -214,12 +220,12 @@ public class Field {
 	}
 	
 
-	public static Point getClosestAgent(Point p, int agentTeam) {
+	public static Point getClosestEnemy(Point p, int agentTeam) {
 		double closestDistance = Double.MAX_VALUE;
 		Point closestPoint = null;
 		List<Agent> team = null;
-        if(agentTeam==1) team = team1;
-		else team = team2;
+        if(agentTeam==1) team = team2;
+		else team = team1;
 
 		for(Agent ag: team){
 			double distance = p.distance(ag.currentPosition);
@@ -237,7 +243,8 @@ public class Field {
 		Point closestPoint = null;
 
 		for(Ball ball: balls){
-			if(!(topHalf(p) == topHalf(ball.currentPosition)))
+			if(!(topHalf(p) == topHalf(ball.currentPosition))
+				|| ball.currentPosition.y == nY/2 || ball.currentPosition.y == (nY/2)-1)
 				continue;
 
 			double distance = p.distance(ball.currentPosition);
@@ -330,8 +337,10 @@ public class Field {
 
 	public static void step() {
 		removeObjects();
+		
 		for(Agent a : agents) a.agentDecision();
 		for(Ball b: balls) b.getNextPosition(ball_step);
+		
 		killAgents();
 		displayObjects();
 		GUI.update();			

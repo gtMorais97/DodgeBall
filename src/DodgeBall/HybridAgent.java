@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Point;
 import java.util.AbstractMap;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -22,9 +21,6 @@ public class HybridAgent extends Agent {
     public List<Desire> desires;
 	public AbstractMap.SimpleEntry<Desire,Point> intention;
 
-    private Ball ballInSight;
-    private Agent agentInSight;
-
     public HybridAgent(Point point, Color color, int direction, int team) {
         super(point, color, direction, team);
         plan = new LinkedList<>();
@@ -36,18 +32,15 @@ public class HybridAgent extends Agent {
         updateBeliefs();
 
         //reactive
-        if(ballIncoming(ballInSight))
-            evade(); 
-        
-        else if(isEnemyAgent(agentInSight) && hasBall())
-            throwBall();
-        
+        boolean reacted = react();
+
         //deliberative
-        else{
+        if(!reacted){
             if(hasPlan() && !succeededIntention() && possibleIntention()){
-                Action action = plan.remove();
+                Action action = plan.peek();
                 if(isPlanSound(action)){
-                    execute(action); 
+                    execute(action);
+                    plan.remove();
                 } 
                 else buildPlan();
                 planIterations++;
@@ -65,6 +58,30 @@ public class HybridAgent extends Agent {
         }   
     }
 
+    private boolean react(){
+        if(ballIncoming(ballsInSight)){
+            evade();
+            return true;
+        }
+             
+        
+        if(containsAgentFromTeam(oppositeTeam()) 
+            && !containsAgentFromTeam(this.team) 
+            && hasBall()){
+            
+                throwBall();
+                return true;
+        }
+        
+        if(isBallAhead()){
+            grabBall();
+            return true;
+        }
+
+        return false;
+            
+    }
+
     private void agentReactiveDecision() {
         if(Field.isWall(aheadPosition)) 
 	        rotateRandomly();
@@ -72,8 +89,11 @@ public class HybridAgent extends Agent {
         else if(isBallAhead() && !hasBall()) 
             grabBall();
 
-        else if(hasBall() && isEnemyAgent(agentInSight))
-            throwBall();
+        else if(containsAgentFromTeam(oppositeTeam()) 
+            && !containsAgentFromTeam(this.team) 
+            && hasBall())
+
+                throwBall();
 
         else if(!isFreeCell()) 
             rotateRandomly();
@@ -105,7 +125,9 @@ public class HybridAgent extends Agent {
         if(team==1)
             y = Field.nY/2-1;
         else y = Field.nY/2;
-        return new Point(currentPosition.x, y);
+        Point pos = new Point(p.x, y);
+        System.out.println(pos);
+        return pos;
     }
 
     private boolean reconsider() {
@@ -151,7 +173,9 @@ public class HybridAgent extends Agent {
     private boolean isPlanSound(Action action) {
         switch (action) {
             case throwBall:
-                return hasBall() && agentInSight!=null;
+                return containsAgentFromTeam(oppositeTeam()) 
+                        && !containsAgentFromTeam(this.team) 
+                        && hasBall();
         
             case grabBall:
                 return !hasBall() && Field.getEntity(aheadPosition) instanceof Ball;
@@ -189,12 +213,6 @@ public class HybridAgent extends Agent {
         return !plan.isEmpty();
     }
 
-    private void updateBeliefs(){
-        aheadPosition = aheadPosition(1);
-        ballInSight = (Ball) getEntityInSight("ball");
-        agentInSight = (Agent) getEntityInSight("agent");
-    }
-
     private void deliberate(){
         desires = new ArrayList<>();
         if(hasBall()){
@@ -206,7 +224,7 @@ public class HybridAgent extends Agent {
         Point targetPoint;
         switch (intention.getKey()) {
             case throwBall:
-                targetPoint = Field.getClosestAgent(this.currentPosition, this.team);
+                targetPoint = Field.getClosestEnemy(this.currentPosition, this.team);
                 intention.setValue(targetPoint);
                 break;
             case grabBall:
