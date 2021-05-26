@@ -1,6 +1,7 @@
+package entities;
+
 import java.awt.Color;
 import java.awt.Point;
-import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
