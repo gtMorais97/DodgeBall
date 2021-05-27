@@ -26,14 +26,14 @@ public class Ball extends MovingEntity {
 		nextPosition = newpoint;
 	}
 	
-	public void dropBall(Point newpoint) {
+	public void dropBall(Point dropPoint) {
 		
-		if(Field.getEntity(newpoint) instanceof Agent){
-			Agent agent = (Agent) Field.getEntity(newpoint);
+		if(Field.getEntity(dropPoint) instanceof Agent){
+			Agent agent = (Agent) Field.getEntity(dropPoint);
 			Field.agentsToKill.add(agent);
 		}
 		beingHeld = false;
-		currentPosition = newpoint;
+		currentPosition = dropPoint;
 		nextPosition = Utils.copyPoint(currentPosition);
 		
 		Field.insertEntity(this, nextPosition);	

@@ -55,8 +55,8 @@ public abstract class Agent extends MovingEntity{
 		if(Field.isWall(p)) return false;
 		if(Field.getBlock(p).shape.equals(Shape.free) && !crossingMidField()){
 			if(Field.getEntity(p)==null){
-				for(Agent ag: Field.agents){
-					if(ag.nextPosition.equals(p) && !ag.equals(this))
+				for(Agent agent: Field.agents){
+					if(agent.nextPosition.equals(p) && !agent.equals(this))
 						return false;
 				}
 				for(Ball b: Field.balls){
@@ -185,7 +185,7 @@ public abstract class Agent extends MovingEntity{
 	/* Drop ball */
 	public void dropBall() {
 		Point dropPoint;
-		if(isFreeCell(aheadPosition))
+		if(ball.isFreeCell(aheadPosition))
 			dropPoint = Utils.copyPoint(aheadPosition);
 		else if(ball.isFreeCell(adjacentPosition(1, (this.direction+90)%360))) 
 			dropPoint = adjacentPosition(1, (this.direction+90)%360);

@@ -219,6 +219,7 @@ public class Field {
 			}
 			System.out.println();
 		}
+		System.out.println();
 	}
 
 	public static Entity[] getEntitiesInColumn(int x){
@@ -264,17 +265,17 @@ public class Field {
 	}
 
 	public static void killAgents(){
-		for(Agent ag: agentsToKill){
-			if(ag.hasBall())
-				ag.dropBall();
+		for(Agent agent: agentsToKill){
+			if(agent.hasBall())
+				agent.dropBall();
 
-			agents.remove(ag);
+			agents.remove(agent);
 
-			if(ag.team==1) 
-				team1.remove(ag);
-			else team2.remove(ag);
+			if(agent.team==1) 
+				team1.remove(agent);
+			else team2.remove(agent);
 
-			GUI.removeObject(ag);
+			GUI.removeObject(agent);
 		}
 		agentsToKill.clear();
 	}
@@ -291,11 +292,11 @@ public class Field {
         if(agentTeam==1) team = team2;
 		else team = team1;
 
-		for(Agent ag: team){
-			double distance = p.distance(ag.currentPosition);
+		for(Agent agent: team){
+			double distance = p.distance(agent.currentPosition);
 			if(distance < closestDistance){
 				closestDistance = distance;
-				closestPoint = Utils.copyPoint(ag.currentPosition);
+				closestPoint = Utils.copyPoint(agent.currentPosition);
 			}
 		}
 
@@ -339,22 +340,24 @@ public class Field {
 	public static class RunThread extends Thread {
 		
 		int time;
+		int total_games = 100;
 		HashMap<Integer, Integer> score;
+		
 
 		public RunThread(int time){
 			this.time = time*time;
 		}
 		
 	    public void run() {
-			int total_games = 5;
-
 			score = new HashMap<>();
 			score.put(1,0);
 			score.put(2,0);
 
 			int gameCounter = 0;
+			int it = 0;
 	    	while(gameCounter < total_games){
-	    		step();
+				step();
+				it++;
 				if(gameEnded()){
 					gameCounter++;
 					updateScore();
@@ -365,9 +368,22 @@ public class Field {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
+
+				if(it%5 == 0) duckTape();
 	    	}
 			evaluate();
 	    }
+
+		private void duckTape() {
+			objects = new Entity[nX][nY];
+			for(Agent agent: agents)
+				objects[agent.currentPosition.x][agent.currentPosition.y] = agent;
+			
+			for(Ball ball: balls)
+				if(!ball.beingHeld)
+					objects[ball.currentPosition.x][ball.currentPosition.y] = ball;
+			printBoard();
+		}
 
 		private void updateScore() {
 			if(!team1.isEmpty()) 
