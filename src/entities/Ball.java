@@ -10,6 +10,7 @@ import main.*;
 public class Ball extends MovingEntity {
 
 	public boolean beingHeld = false;
+	public int team;
 
 	public Ball(Point point, Color color, int direction) {
 		super(point, color, direction);
@@ -44,7 +45,7 @@ public class Ball extends MovingEntity {
 	}
 
 	public void getNextPosition(int step){
-		this.aheadPosition = aheadPosition(step);
+		this.aheadPosition = adjacentPosition(step, this.direction);
 		if(aheadPosition == null) return; //ball is not moving
 
 		if(!Field.isWall(aheadPosition)){
@@ -56,9 +57,18 @@ public class Ball extends MovingEntity {
 	}
 
 	public boolean isFreeCell(Point p) {
-		if(Field.getBlock(p).shape.equals(Shape.free))
-			if(Field.getEntity(p) == null || Field.getEntity(p) instanceof Agent) 
+		Block block = Field.getBlock(p);
+		if(block == null) return false;
+
+		if(block.shape.equals(Shape.free))
+			if(Field.getEntity(p) == null)
 				return true;
+			if(Field.getEntity(p) instanceof Agent){
+				Agent agent = (Agent) Field.getEntity(p);
+				if(agent.team != this.team)
+					return true;
+			}
+				
 		return false;
 	}
 
@@ -68,7 +78,7 @@ public class Ball extends MovingEntity {
 		do{
 			nextPosition = new Point(aheadPosition.x, aheadPosition.y);
 			if(!isFreeCell(nextPosition)){
-				aheadPosition = aheadPosition(step);
+				aheadPosition = adjacentPosition(step, this.direction);
 				step++;
 			}
 		}while(!isFreeCell(nextPosition));

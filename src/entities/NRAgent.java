@@ -58,14 +58,18 @@ public abstract class NRAgent extends Agent{
 	/*******************************/
 
 	protected Queue<Action> buildPathPlan(Point p1, Point p2) {
+		Queue<Action> result = new LinkedList<Action>();
+
 		Stack<Point> path = new Stack<Point>();
 		Node node = shortestPath(p1,p2);
+		if(node == null) return result;
+
 		path.add(node.point);
 		while(node.parent!=null) {
 			node = node.parent;
 			path.push(node.point);
 		}
-		Queue<Action> result = new LinkedList<Action>();
+		
 		p1 = path.pop();
 		int auxdirection = direction;
 		while(!path.isEmpty()) {

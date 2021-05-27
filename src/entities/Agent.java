@@ -35,7 +35,7 @@ public abstract class Agent extends MovingEntity{
 	/********************/
 
 	protected void updateBeliefs(){
-        aheadPosition = aheadPosition(1);
+        aheadPosition = adjacentPosition(1, this.direction);
         ballsInSight = Utils.cast(getEntitiesInSight("ball"));
         agentsInSight = Utils.cast(getEntitiesInSight("agent"));
     }
@@ -175,16 +175,25 @@ public abstract class Agent extends MovingEntity{
 	/* Grab ball */
 	public void grabBall() {
 	  ball = (Ball) Field.getEntity(aheadPosition);
-	  if (ball != null)
-	  	ball.grabBall(Utils.copyPoint(currentPosition));
+	  if (ball != null){
+		  ball.grabBall(Utils.copyPoint(currentPosition));
+		  ball.team = this.team;
+	  }
+	  	
 	}
 
 	/* Drop ball */
 	public void dropBall() {
 		Point dropPoint;
-		if(ball.isFreeCell(aheadPosition))
+		if(isFreeCell(aheadPosition))
 			dropPoint = Utils.copyPoint(aheadPosition);
-		else dropPoint = Utils.copyPoint(currentPosition);
+		else if(ball.isFreeCell(adjacentPosition(1, (this.direction+90)%360))) 
+			dropPoint = adjacentPosition(1, (this.direction+90)%360);
+		else if(ball.isFreeCell(adjacentPosition(1, (this.direction+180)%360))) 
+			dropPoint = adjacentPosition(1, (this.direction+180)%360);
+		else if(ball.isFreeCell(adjacentPosition(1, (this.direction+270)%360))) 
+			dropPoint = adjacentPosition(1, (this.direction+270)%360);
+		else dropPoint = Utils.copyPoint(this.currentPosition);
 
 		ball.dropBall(dropPoint);
 	    ball = null;
@@ -204,7 +213,7 @@ public abstract class Agent extends MovingEntity{
 			this.direction = 0;
 		else if(!lowerField() && this.direction != 180)
 			this.direction = 180;
-		this.aheadPosition = aheadPosition(1);
+		this.aheadPosition = adjacentPosition(1, this.direction);
 		if(ball.isFreeCell(this.aheadPosition)){
 			this.ball.direction = this.direction;
 			dropBall();
@@ -215,6 +224,24 @@ public abstract class Agent extends MovingEntity{
 	/*wether agent is the lower part of the field */
 	private boolean lowerField(){
 		return this.currentPosition.y < Field.nY/2;
+	}
+
+
+	public void reset() {
+		this.ball = null;
+		this.currentPosition = null;
+		this.nextPosition = null;
+		this.aheadPosition = null;
+
+		switch (this.team) {
+			case 1:
+				this.direction = 180;
+				break;
+		
+			case 2:
+				this.direction = 0;
+				break;
+		}
 	}
     
 }

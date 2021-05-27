@@ -6,6 +6,7 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,9 @@ public class Field {
 	public static int nX = 10, nY = 10;
 	private static Block[][] board;
 	private static Entity[][] objects;
+	public static List<Agent> agentsIMMUTABLE;
+	public static List<Agent> team1IMMUTABLE;
+	public static List<Agent> team2IMMUTABLE;
 	public static List<Agent> agents;
 	public static List<Agent> team1;
 	public static List<Agent> team2;
@@ -55,22 +59,70 @@ public class Field {
 		
 		/** B: create balls */
 		balls = new ArrayList<>();
-		placeObjects("balls");
+		placeObjects("balls", false);
 	
 		
 		/** C: create agents */
 		agents = new ArrayList<>();
 		team1 = new ArrayList<>();
 		team2 = new ArrayList<>();
-		placeObjects("agents");
+		placeObjects("agents", false);
+
+		//create unmodifiable lists
+		agentsIMMUTABLE = new ArrayList<>();
+		team1IMMUTABLE = new ArrayList<>();
+		team2IMMUTABLE = new ArrayList<>();
+		agentsIMMUTABLE.addAll(agents);
+		team1IMMUTABLE.addAll(team1);		
+		team2IMMUTABLE.addAll(team2);
+
+		agentsIMMUTABLE = Collections.unmodifiableList(agentsIMMUTABLE);
+		team1IMMUTABLE = Collections.unmodifiableList(team1IMMUTABLE);
+		team2IMMUTABLE = Collections.unmodifiableList(team2IMMUTABLE);
+
 		
+	}
+
+	public static void reinitialize(){
+		
+
+		/** A: create board */
+		board = new Block[nX][nY];
+		for(int i=0; i<nX; i++) 
+			for(int j=0; j<nY; j++) 
+				board[i][j] = new Block(Shape.free, Color.lightGray);
+
+		objects = new Entity[nX][nY];
+
+		
+
+		/* Reinsert agents*/
+		for(Agent agent: agentsIMMUTABLE)
+			agent.reset();
+
+		agents = new ArrayList<>();
+		team1 = new ArrayList<>();
+		team2 = new ArrayList<>();
+		agentsToKill = new ArrayList<>();
+		agents.addAll(agentsIMMUTABLE);
+		team1.addAll(team1IMMUTABLE);
+		team2.addAll(team2IMMUTABLE);
+
+		placeObjects("agents", true);
+
+		
+		System.out.println(team1.get(0).team);
+		System.out.println(team1.get(0).team);
+		/* Insert balls*/
+		balls = new ArrayList<>();
+		placeObjects("balls", false);
 	}
 	
 	/****************************
 	 ***** B: BOARD METHODS *****
 	 ****************************/
 
-	private static void placeObjects(String opt){
+	private static void placeObjects(String opt, boolean reinserting){
 		int var;
 		switch(opt){
 			case "agents":
@@ -94,15 +146,22 @@ public class Field {
 					objects[p1.x][p1.y] = ball;
 					break;
 				case "agents":
-					Agent agent = new HybridAgent(p1, Color.GREEN, 180, 1);
-					agents.add(agent);
-					team1.add(agent);
+					Agent agent;
+					if(reinserting){
+						agent = team1.get(i);
+						agent.currentPosition = p1;
+						agent.nextPosition = p1;
+					}
+						
+					else{
+						agent = new HybridAgent(p1, Color.GREEN, 180, 1);
+						agents.add(agent);
+						team1.add(agent);
+					}
 					objects[p1.x][p1.y] = agent;
 					
 					break;
 			}
-			
-			
 			
 			Point p2 = getRandomPoint(!topHalf);
 			switch(opt){
@@ -112,9 +171,17 @@ public class Field {
 					objects[p2.x][p2.y] = ball;
 					break;
 				case "agents":
-					Agent agent = new ReactiveAgent(p2, Color.BLUE, 0, 2);
-					agents.add(agent);	
-					team2.add(agent);
+					Agent agent;
+					if(reinserting){
+						agent = team2.get(i);
+						agent.currentPosition = p2;
+						agent.nextPosition = p2;
+					}
+					else{
+						agent = new HybridAgent(p2, Color.BLUE, 0, 2);
+						agents.add(agent);
+						team2.add(agent);
+					}
 					objects[p2.x][p2.y] = agent;
 					break;
 			}
@@ -347,7 +414,7 @@ public class Field {
 
 	public static void reset() {
 		removeObjects();
-		initialize();
+		reinitialize();
 		GUI.displayBoard();
 		displayObjects();	
 		GUI.update();
@@ -369,8 +436,8 @@ public class Field {
 		GUI.update();			
 		steps++;
 		totalSteps++;
-		printBoard();
-		System.out.println("Step:  " + steps);
+		//printBoard();
+		//System.out.println("Step:  " + steps);
 	}
 
 	public static void stop() {

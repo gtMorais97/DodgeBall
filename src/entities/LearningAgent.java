@@ -3,7 +3,6 @@ package entities;
 import java.awt.Color;
 import java.awt.Point;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -13,18 +12,17 @@ public class LearningAgent extends NRAgent {
 
 
     public LearningAgent(Point point, Color color, int direction, int team){
-        super(point, color, direction, team);
+		super(point, color, direction, team);
+		initQFunction();
     }
 
     @Override
     public void agentDecision() {
-        aheadPosition = aheadPosition(1); //percept
+        aheadPosition = adjacentPosition(1, this.direction); //percept
 		int originalState = getQState();
 		Action originalAction = selectAction();
 		execute(originalAction);
 
-		//proactiveDecision(); /* DBI */
-		//reactiveDecision();
 		learningDecision(originalState,originalAction); /* RL */
     }
 
@@ -71,7 +69,7 @@ public class LearningAgent extends NRAgent {
 		double predError = 0;
 		
 		epsilon = Math.max(epsilon-dec,0.05);
-		aheadPosition = aheadPosition(1); //percept
+		aheadPosition = adjacentPosition(1, this.direction); //percept
 		
 		switch(learningApproach) {
 			case SARSA : 
@@ -203,6 +201,7 @@ public class LearningAgent extends NRAgent {
 			case moveAhead : return isFreeCell(aheadPosition);
 			case grabBall : return !Field.isWall(aheadPosition) && isBallAhead() && !hasBall();
 			case throwBall : return !Field.isWall(aheadPosition) && hasBall();
+			case dropBall: return !Field.isWall(aheadPosition) && hasBall();
 			default : return true;
 		}
 	}

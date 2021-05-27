@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.Stack;
 
 import main.*;
 
@@ -111,11 +110,13 @@ public class HybridAgent extends NRAgent {
         switch(intention.getKey()){
             case throwBall:
                 plan = buildPathPlan(currentPosition,getAttackPosition(intention.getValue()));
-                plan.add(Action.throwBall);
+                if(!plan.isEmpty()) 
+                    plan.add(Action.throwBall);
                 break;
             case grabBall:
                 plan = buildPathPlan(currentPosition,intention.getValue());
-                plan.add(Action.grabBall);
+                if(!plan.isEmpty()) 
+                    plan.add(Action.grabBall);
                 break;
         }
     }
@@ -126,7 +127,7 @@ public class HybridAgent extends NRAgent {
             y = Field.nY/2-1;
         else y = Field.nY/2;
         Point pos = new Point(p.x, y);
-        System.out.println(pos);
+
         return pos;
     }
 

@@ -18,7 +18,7 @@ public class MovingEntity extends Entity{
     }
 
     /* Position ahead */
-	protected Point aheadPosition(int step) {
+	protected Point adjacentPosition(int step, int direction) {
 		Point newpoint = new Point(currentPosition.x,currentPosition.y);
 		switch(direction) {
 			case 0: newpoint.y += step; break;
