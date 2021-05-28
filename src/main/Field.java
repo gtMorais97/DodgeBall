@@ -3,11 +3,13 @@ package main;
 import java.awt.Color;
 import java.awt.Point;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -15,6 +17,7 @@ import java.util.Random;
 import entities.*;
 import entities.Block.Shape;
 import utils.*;
+import entities.LearningAgent.LearningApproach;
 
 /**
  * Environment
@@ -40,7 +43,17 @@ public class Field {
 	public static int balls_per_team = 1;
 	public static int ball_step = 1;
 	private static Random random;
-	
+
+	private static enum agentType{
+		REACTIVE,
+		DELIBERATIVE,
+		HYBRID,
+		Q,
+		SARSA
+	}
+	public static final agentType team1Type = agentType.REACTIVE;
+	public static final agentType team2Type = agentType.DELIBERATIVE;
+
 	
 	/****************************
 	 ***** A: SETTING BOARD *****
@@ -154,7 +167,25 @@ public class Field {
 					}
 						
 					else{
-						agent = new HybridAgent(p1, Color.GREEN, 180, 1);
+						Color color = null;
+						switch(team1Type){
+							case REACTIVE:
+								color = Color.YELLOW;
+								break;
+							case DELIBERATIVE:
+								color = Color.BLUE;
+								break;
+							case HYBRID:
+								color = Color.GREEN;
+								break;
+							case Q:
+								color = Color.GRAY;
+								break;
+							case SARSA:
+								color = Color.DARK_GRAY;
+								break;
+						}
+						agent = new ReactiveAgent(p1, color, 180, 1);
 						agents.add(agent);
 						team1.add(agent);
 					}
@@ -178,7 +209,29 @@ public class Field {
 						agent.nextPosition = p2;
 					}
 					else{
-						agent = new HybridAgent(p2, Color.BLUE, 0, 2);
+						Color color = null;
+						switch(team2Type){
+							case REACTIVE:
+								agent = new ReactiveAgent(p2, Color.YELLOW, 0, 2);
+								break;
+							case DELIBERATIVE:
+								agent = new HybridAgent(p2, Color.BLUE, 0, 2, false);
+								break;
+							case HYBRID:
+								agent = new HybridAgent(p2, Color.GREEN, 0, 2, true);
+								break;
+							case Q:
+								agent = new LearningAgent(p2, Color.GRAY, 0, 2, LearningApproach.QLearning);
+								break;
+							case SARSA:
+								agent = new LearningAgent(p2, Color.DARK_GRAY, 0, 2, LearningApproach.QLearning);
+								break;
+							default:
+								agent = new ReactiveAgent(p2, Color.YELLOW, 0, 2);
+									break;
+
+						}
+						
 						agents.add(agent);
 						team2.add(agent);
 					}
@@ -248,8 +301,9 @@ public class Field {
 		if(old_point.equals(new_point)) return;
 
 		if(getEntity(new_point) instanceof Agent && entity instanceof Ball){
-			Agent ag  = (Agent) getEntity(new_point);
-			agentsToKill.add(ag);
+			Agent agent  = (Agent) getEntity(new_point);
+			if(!agentsToKill.contains(agent))
+				agentsToKill.add(agent);
 		}
 			
 
@@ -265,11 +319,13 @@ public class Field {
 	}
 
 	public static void killAgents(){
-		for(Agent agent: agentsToKill){
+		agents.removeAll(agentsToKill);
+		
+		Iterator<Agent> it = agentsToKill.iterator();
+		while(it.hasNext()){
+			Agent agent = it.next();
 			if(agent.hasBall())
 				agent.dropBall();
-
-			agents.remove(agent);
 
 			if(agent.team==1) 
 				team1.remove(agent);
@@ -340,8 +396,14 @@ public class Field {
 	public static class RunThread extends Thread {
 		
 		int time;
-		int total_games = 100;
-		HashMap<Integer, Integer> score;
+		int total_games = 30;
+		HashMap<agentType, Integer> score;
+
+		String filename = "evaluations/" 
+						  + team1Type.toString() 
+						  + "vs" 
+						  + team2Type.toString() 
+						  + ".txt";
 		
 
 		public RunThread(int time){
@@ -350,8 +412,8 @@ public class Field {
 		
 	    public void run() {
 			score = new HashMap<>();
-			score.put(1,0);
-			score.put(2,0);
+			score.put(team1Type,0);
+			score.put(team2Type,0);
 
 			int gameCounter = 0;
 			int it = 0;
@@ -374,7 +436,7 @@ public class Field {
 			evaluate();
 	    }
 
-		private void duckTape() {
+		private static void duckTape() {
 			objects = new Entity[nX][nY];
 			for(Agent agent: agents)
 				objects[agent.currentPosition.x][agent.currentPosition.y] = agent;
@@ -387,9 +449,9 @@ public class Field {
 
 		private void updateScore() {
 			if(!team1.isEmpty()) 
-				score.computeIfPresent(1, (k,v) -> v+1);
+				score.computeIfPresent(team1Type, (k,v) -> v+1);
 			else if(!team2.isEmpty()) 
-				score.computeIfPresent(2, (k,v) -> v+1);
+				score.computeIfPresent(team2Type, (k,v) -> v+1);
 		}
 
 		private void evaluate() {
@@ -399,9 +461,15 @@ public class Field {
 										   .orElse(0);
 			
 			try {
-				
-				String filename = "evaluations/hybridVSreactive.txt";
-				BufferedWriter writer = new BufferedWriter(new FileWriter(filename));
+				File file = new File(filename);
+				if(!file.exists()){
+					file.createNewFile();
+				 }
+
+				BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
+
+				writer.write("Total number of games: " + total_games);
+				writer.newLine(); 
 
 				writer.write("Average game length: " + averageGameLenght);
 				writer.newLine(); 
@@ -409,13 +477,17 @@ public class Field {
 
 				writer.write("Score");
 				writer.newLine();
-				for(Map.Entry<Integer,Integer> entry : score.entrySet()){
+				for(Map.Entry<agentType,Integer> entry : score.entrySet()){
 					writer.write(entry.getKey() + ":"
 									+ entry.getValue());
 					writer.newLine();
 				}
-				
+
+				writer.newLine();
+				writer.write("|-----------------------|");
+				writer.newLine();
 				writer.close();
+				
 			} catch (IOException e) {
 				e.printStackTrace();
 				System.err.println("Error creating evaluation file");

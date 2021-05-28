@@ -11,8 +11,9 @@ import main.*;
 public class LearningAgent extends NRAgent {
 
 
-    public LearningAgent(Point point, Color color, int direction, int team){
+    public LearningAgent(Point point, Color color, int direction, int team, LearningApproach learningApproach){
 		super(point, color, direction, team);
+		this.learningApproach = learningApproach;
 		initQFunction();
     }
 
@@ -31,10 +32,10 @@ public class LearningAgent extends NRAgent {
 	 ************************/
 
 	enum ActionSelection  { eGreedy, softMax }
-	enum LearningApproach { QLearning, SARSA }
+	public enum LearningApproach { QLearning, SARSA }
 
 	ActionSelection actionSelection = ActionSelection.softMax;
-	LearningApproach learningApproach = LearningApproach.QLearning;
+	LearningApproach learningApproach;
 
 	int it = 0, total = 1000000, directions = 4;
 	double discount = 0.9, learningRate = 0.8;
@@ -46,7 +47,7 @@ public class LearningAgent extends NRAgent {
     /* Creates the initial Q-value function structure: (x y action) <- 0 */
 	public void initQFunction(){
 		actions = new ArrayList<Action>(EnumSet.allOf(Action.class));
-		q = new double[Field.nX*Field.nY*directions*Field.balls_per_team*2][actions.size()]; //2 -> holding or not holding a ball
+		q = new double[Field.nX*Field.nY*directions*2][actions.size()]; //2 -> holding or not holding a ball
 		dec = (epsilon-0.1)/total;
     }
     

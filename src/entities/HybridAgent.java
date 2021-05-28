@@ -20,10 +20,13 @@ public class HybridAgent extends NRAgent {
     public List<Desire> desires;
 	public AbstractMap.SimpleEntry<Desire,Point> intention;
 
-    public HybridAgent(Point point, Color color, int direction, int team) {
+    public boolean hybrid; //when false, only deliberative sub system is active
+
+    public HybridAgent(Point point, Color color, int direction, int team, boolean hybrid) {
         super(point, color, direction, team);
-        plan = new LinkedList<>();
-        planIterations = 0;
+        this.hybrid = hybrid;
+        this.plan = new LinkedList<>();
+        this.planIterations = 0;
     }
 
     @Override
@@ -31,16 +34,17 @@ public class HybridAgent extends NRAgent {
         updateBeliefs();
 
         //reactive
-        boolean reacted = react();
+        boolean reacted = false;
+        if(hybrid)
+            reacted = react();
 
         //deliberative
         if(!reacted){
             if(hasPlan() && !succeededIntention() && possibleIntention()){
-                Action action = plan.peek();
+                Action action = plan.remove();
                 if(isPlanSound(action)){
                     execute(action);
-                    plan.remove();
-                } 
+                }
                 else buildPlan();
                 planIterations++;
 
@@ -62,7 +66,6 @@ public class HybridAgent extends NRAgent {
             evade();
             return true;
         }
-             
         
         if(containsAgentFromTeam(oppositeTeam()) 
             && !containsAgentFromTeam(this.team) 

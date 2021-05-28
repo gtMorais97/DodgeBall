@@ -1,0 +1,26 @@
+Total number of games: 10
+Average game length: 209.4
+
+Score
+REACTIVE:5
+DELIBERATIVE:5
+
+|-----------------------|
+
+Total number of games: 10
+Average game length: 198.0
+
+Score
+DELIBERATIVE:6
+REACTIVE:4
+
+|-----------------------|
+
+Total number of games: 30
+Average game length: 348.6949152542373
+
+Score
+DELIBERATIVE:12
+REACTIVE:18
+
+|-----------------------|
