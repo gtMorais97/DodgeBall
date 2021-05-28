@@ -114,6 +114,15 @@ public class GUI extends JFrame {
 		p.setBorder(BorderFactory.createLineBorder(Color.white));			
 		p.entities.remove(object);
 	}
+
+	public void removeAgents(List<Agent> agents) {
+		for(Agent agent: agents){	
+			int row=nY-agent.currentPosition.y-1, col=agent.currentPosition.x;
+			Cell p = (Cell)boardPanel.getComponent(row*nX+col);
+			p.setBorder(BorderFactory.createLineBorder(Color.white));			
+			p.entities.remove(agent);
+		}
+	}
 	
 	public void displayObject(Entity object) {
 		int row=nY-object.currentPosition.y-1, col=object.currentPosition.x;

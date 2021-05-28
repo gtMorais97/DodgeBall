@@ -8,6 +8,7 @@ import java.util.List;
 import entities.Block.Shape;
 import utils.*;
 import main.*;
+import main.Field.RunThread;
 
 public abstract class Agent extends MovingEntity{
 
@@ -218,6 +219,8 @@ public abstract class Agent extends MovingEntity{
 			this.ball.direction = this.direction;
 			dropBall();
 		}
+
+		RunThread.totalThrows++;
 		
 	}
 

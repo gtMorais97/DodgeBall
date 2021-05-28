@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -44,6 +43,8 @@ public class Field {
 	public static int ball_step = 1;
 	private static Random random;
 
+	public static int total_games = 20;
+
 	private static enum agentType{
 		REACTIVE,
 		DELIBERATIVE,
@@ -51,8 +52,8 @@ public class Field {
 		Q,
 		SARSA
 	}
-	public static final agentType team1Type = agentType.REACTIVE;
-	public static final agentType team2Type = agentType.DELIBERATIVE;
+	public static final agentType team1Type = agentType.HYBRID;
+	public static final agentType team2Type = agentType.HYBRID;
 
 	
 	/****************************
@@ -320,20 +321,16 @@ public class Field {
 
 	public static void killAgents(){
 		agents.removeAll(agentsToKill);
-		
-		Iterator<Agent> it = agentsToKill.iterator();
-		while(it.hasNext()){
-			Agent agent = it.next();
+		team1.removeAll(agentsToKill);
+		team2.removeAll(agentsToKill);
+		GUI.removeAgents(agentsToKill);
+
+		for(Agent agent: agentsToKill){
 			if(agent.hasBall())
 				agent.dropBall();
-
-			if(agent.team==1) 
-				team1.remove(agent);
-			else team2.remove(agent);
-
-			GUI.removeObject(agent);
 		}
-		agentsToKill.clear();
+
+		agentsToKill = new ArrayList<>();
 	}
 
 	public static boolean isWall(Point p){
@@ -391,13 +388,18 @@ public class Field {
 	private static GUI GUI;
 	private static int steps = 0;
 	private static int totalSteps = 0;
-	private static ArrayList <Integer> counter = new ArrayList<Integer>();
+	private static ArrayList <Integer> gameLengthVec = new ArrayList<Integer>();
 
 	public static class RunThread extends Thread {
 		
-		int time;
-		int total_games = 30;
-		HashMap<agentType, Integer> score;
+		private int time;
+		
+		private HashMap<String, Integer> score;
+		private String key1;
+		private String key2;
+
+		public static int totalThrows;
+		private List<Integer> totalThrowsVec;
 
 		String filename = "evaluations/" 
 						  + team1Type.toString() 
@@ -408,12 +410,20 @@ public class Field {
 
 		public RunThread(int time){
 			this.time = time*time;
+			totalThrows = 0;
+			this.totalThrowsVec = new ArrayList<>();
 		}
 		
 	    public void run() {
 			score = new HashMap<>();
-			score.put(team1Type,0);
-			score.put(team2Type,0);
+			key1 = team1Type.toString();
+			key2 = team2Type.toString();
+			if(team1Type.equals(team2Type)){
+				key1 += "1";
+				key2 += "2";
+			}
+			score.put(key1,0);
+			score.put(key2,0);
 
 			int gameCounter = 0;
 			int it = 0;
@@ -422,8 +432,12 @@ public class Field {
 				it++;
 				if(gameEnded()){
 					gameCounter++;
+					totalThrowsVec.add(totalThrows);
+					totalThrows = 0;
+
 					updateScore();
 					reset();
+
 				}
 				try {
 					sleep(time);
@@ -434,6 +448,8 @@ public class Field {
 				if(it%5 == 0) duckTape();
 	    	}
 			evaluate();
+			gameLengthVec.clear();
+			totalThrowsVec.clear();
 	    }
 
 		private static void duckTape() {
@@ -449,22 +465,27 @@ public class Field {
 
 		private void updateScore() {
 			if(!team1.isEmpty()) 
-				score.computeIfPresent(team1Type, (k,v) -> v+1);
+				score.computeIfPresent(key1, (k,v) -> v+1);
 			else if(!team2.isEmpty()) 
-				score.computeIfPresent(team2Type, (k,v) -> v+1);
+				score.computeIfPresent(key2, (k,v) -> v+1);
 		}
 
 		private void evaluate() {
-			double averageGameLenght = counter.stream()
+			double averageGameLenght = gameLengthVec.stream()
 										   .mapToInt(i -> i)
 										   .average()
 										   .orElse(0);
+
+			double averageThrows = totalThrowsVec.stream()
+										   .mapToInt(i -> i)
+										   .average()
+										   .orElse(0);							   
 			
 			try {
 				File file = new File(filename);
-				if(!file.exists()){
+				if(!file.exists())
 					file.createNewFile();
-				 }
+				
 
 				BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
 
@@ -472,12 +493,20 @@ public class Field {
 				writer.newLine(); 
 
 				writer.write("Average game length: " + averageGameLenght);
-				writer.newLine(); 
+				writer.newLine();
+				writer.write("Game length vector: " + gameLengthVec.toString());
+				writer.newLine();
+				writer.newLine();
+
+				writer.write("Average #throws: " + averageThrows);
+				writer.newLine();
+				writer.write("#throws vector: " + totalThrowsVec.toString());
+				writer.newLine();
 				writer.newLine();
 
 				writer.write("Score");
 				writer.newLine();
-				for(Map.Entry<agentType,Integer> entry : score.entrySet()){
+				for(Map.Entry<String,Integer> entry : score.entrySet()){
 					writer.write(entry.getKey() + ":"
 									+ entry.getValue());
 					writer.newLine();
@@ -485,6 +514,7 @@ public class Field {
 
 				writer.newLine();
 				writer.write("|-----------------------|");
+				writer.newLine();
 				writer.newLine();
 				writer.close();
 				
@@ -506,10 +536,10 @@ public class Field {
 		GUI.displayBoard();
 		displayObjects();	
 		GUI.update();
-		counter.add(steps);
+		gameLengthVec.add(steps);
 		steps = 0;
 		System.out.println("Reset. Counter state:");
-		System.out.println(counter);
+		System.out.println(gameLengthVec);
 		System.out.println("Total Steps: " + totalSteps);
 	}
 

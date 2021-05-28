@@ -1,0 +1,65 @@
+Total number of games: 20
+Average game length: 244.55
+Game length vector: [316, 100, 443, 61, 396, 183, 219, 90, 471, 204, 250, 132, 287, 230, 204, 199, 67, 514, 381, 144]
+
+Average #throws: 8.25
+#throws vector: [9, 5, 15, 5, 7, 9, 12, 4, 14, 8, 8, 7, 6, 10, 7, 8, 1, 12, 10, 8]
+
+Score
+DELIBERATIVE2:9
+DELIBERATIVE1:11
+
+|-----------------------|
+
+Total number of games: 20
+Average game length: 211.9655172413793
+Game length vector: [0, 233, 193, 258, 100, 150, 363, 139, 360, 311, 179, 262, 110, 241, 130, 228, 346, 351, 29, 143, 351, 106, 90, 199, 405, 164, 408, 181, 117]
+
+Average #throws: 7.5
+#throws vector: [11, 7, 8, 9, 7, 4, 10, 12, 9, 3, 5, 6, 4, 3, 11, 10, 7, 10, 6, 8]
+
+Score
+DELIBERATIVE2:11
+DELIBERATIVE1:9
+
+|-----------------------|
+
+Total number of games: 20
+Average game length: 215.34375
+Game length vector: [0, 215, 90, 189, 356, 292, 105, 532, 155, 77, 250, 19, 81, 62, 320, 376, 195, 283, 395, 105, 225, 238, 108, 294, 185, 186, 550, 124, 242, 168, 208, 266]
+
+Average #throws: 8.1
+#throws vector: [5, 3, 12, 12, 6, 9, 17, 4, 7, 6, 6, 6, 5, 7, 17, 6, 7, 9, 7, 11]
+
+Score
+DELIBERATIVE2:12
+DELIBERATIVE1:8
+
+|-----------------------|
+
+Total number of games: 20
+Average game length: 191.7391304347826
+Game length vector: [0, 92, 57, 252, 576, 122, 324, 345, 191, 118, 172, 102, 48, 266, 251, 37, 423, 214, 228, 85, 130, 172, 205]
+
+Average #throws: 7.05
+#throws vector: [9, 13, 6, 6, 12, 5, 5, 7, 5, 2, 6, 5, 2, 10, 5, 10, 7, 11, 10, 5]
+
+Score
+DELIBERATIVE2:12
+DELIBERATIVE1:8
+
+|-----------------------|
+
+Total number of games: 20
+Average game length: 202.9375
+Game length vector: [0, 70, 299, 73, 206, 136, 153, 286, 276, 106, 236, 92, 123, 293, 133, 216, 111, 379, 207, 106, 211, 73, 270, 181, 335, 81, 161, 1155, 422, 40, 445, 70, 184, 117, 158, 233, 105, 257, 521, 88, 123, 131, 276, 120, 130, 146, 87, 120]
+
+Average #throws: 6.5
+#throws vector: [4, 4, 9, 4, 5, 6, 4, 8, 6, 7, 13, 8, 3, 5, 12, 5, 9, 7, 5, 6]
+
+Score
+DELIBERATIVE2:9
+DELIBERATIVE1:11
+
+|-----------------------|
+

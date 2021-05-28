@@ -1,0 +1,65 @@
+Total number of games: 20
+Average game length: 338.7
+Game length vector: [268, 281, 589, 538, 391, 521, 420, 251, 299, 270, 485, 152, 530, 147, 197, 197, 363, 337, 106, 432]
+
+Average #throws: 15.2
+#throws vector: [14, 9, 19, 27, 13, 27, 15, 13, 11, 16, 18, 9, 24, 7, 8, 12, 16, 26, 5, 15]
+
+Score
+REACTIVE1:13
+REACTIVE2:7
+
+|-----------------------|
+
+Total number of games: 20
+Average game length: 357.2
+Game length vector: [564, 154, 438, 991, 436, 330, 65, 179, 72, 353, 231, 251, 638, 379, 95, 453, 225, 187, 748, 355]
+
+Average #throws: 14.6
+#throws vector: [18, 6, 16, 35, 19, 13, 3, 10, 5, 20, 14, 9, 17, 20, 5, 13, 10, 10, 33, 16]
+
+Score
+REACTIVE1:11
+REACTIVE2:9
+
+|-----------------------|
+
+Total number of games: 20
+Average game length: 377.45
+Game length vector: [302, 269, 340, 330, 228, 274, 492, 322, 215, 445, 163, 718, 385, 732, 363, 564, 387, 299, 498, 223]
+
+Average #throws: 14.95
+#throws vector: [14, 11, 21, 17, 13, 12, 22, 8, 12, 9, 8, 20, 14, 33, 20, 19, 14, 12, 14, 6]
+
+Score
+REACTIVE1:7
+REACTIVE2:13
+
+|-----------------------|
+
+Total number of games: 20
+Average game length: 436.4
+Game length vector: [734, 161, 148, 590, 410, 527, 467, 166, 538, 340, 558, 641, 499, 69, 512, 465, 257, 305, 579, 762]
+
+Average #throws: 18.0
+#throws vector: [32, 7, 7, 24, 16, 23, 20, 9, 18, 15, 22, 30, 17, 4, 19, 22, 10, 19, 20, 26]
+
+Score
+REACTIVE1:7
+REACTIVE2:13
+
+|-----------------------|
+
+Total number of games: 20
+Average game length: 402.45
+Game length vector: [152, 304, 249, 438, 479, 268, 672, 428, 402, 409, 375, 302, 963, 173, 389, 370, 304, 174, 691, 507]
+
+Average #throws: 17.4
+#throws vector: [5, 12, 15, 19, 17, 13, 30, 24, 14, 15, 31, 14, 24, 17, 18, 15, 19, 10, 21, 15]
+
+Score
+REACTIVE1:10
+REACTIVE2:10
+
+|-----------------------|
+
