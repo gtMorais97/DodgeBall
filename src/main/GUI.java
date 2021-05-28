@@ -181,7 +181,7 @@ public class GUI extends JFrame {
  				}
 			}
 		});
-		speed = new JTextField("10");
+		speed = new JTextField("1");
 		speed.setMargin(new Insets(5,5,5,5));
 		panel.add(speed);
 		

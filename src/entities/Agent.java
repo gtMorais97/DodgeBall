@@ -170,6 +170,7 @@ public abstract class Agent extends MovingEntity{
 			
 		this.nextPosition = Utils.copyPoint(aheadPosition);
 		
+		RunThread.totalSteps++;
 		
 	}
 

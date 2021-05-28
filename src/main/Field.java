@@ -171,22 +171,24 @@ public class Field {
 						Color color = null;
 						switch(team1Type){
 							case REACTIVE:
-								color = Color.YELLOW;
+								agent = new ReactiveAgent(p1, Color.YELLOW, 180, 1);
 								break;
 							case DELIBERATIVE:
-								color = Color.BLUE;
+								agent = new HybridAgent(p1, Color.BLUE, 180, 1, false);
 								break;
 							case HYBRID:
-								color = Color.GREEN;
+								agent = new HybridAgent(p1, Color.GREEN, 180, 1, true);
 								break;
 							case Q:
-								color = Color.GRAY;
+								agent = new LearningAgent(p1, Color.GRAY, 180, 1, LearningApproach.QLearning);
 								break;
 							case SARSA:
-								color = Color.DARK_GRAY;
+								agent = new LearningAgent(p1, Color.DARK_GRAY, 180, 1, LearningApproach.SARSA);
 								break;
+							default:
+								agent = new ReactiveAgent(p1, Color.YELLOW, 180, 1);
+									break;
 						}
-						agent = new ReactiveAgent(p1, color, 180, 1);
 						agents.add(agent);
 						team1.add(agent);
 					}
@@ -210,7 +212,7 @@ public class Field {
 						agent.nextPosition = p2;
 					}
 					else{
-						Color color = null;
+						
 						switch(team2Type){
 							case REACTIVE:
 								agent = new ReactiveAgent(p2, Color.YELLOW, 0, 2);
@@ -225,7 +227,7 @@ public class Field {
 								agent = new LearningAgent(p2, Color.GRAY, 0, 2, LearningApproach.QLearning);
 								break;
 							case SARSA:
-								agent = new LearningAgent(p2, Color.DARK_GRAY, 0, 2, LearningApproach.QLearning);
+								agent = new LearningAgent(p2, Color.DARK_GRAY, 0, 2, LearningApproach.SARSA);
 								break;
 							default:
 								agent = new ReactiveAgent(p2, Color.YELLOW, 0, 2);
@@ -401,6 +403,9 @@ public class Field {
 		public static int totalThrows;
 		private List<Integer> totalThrowsVec;
 
+		public static int totalSteps;
+		private List<Integer> totalStepsVec;
+
 		String filename = "evaluations/" 
 						  + team1Type.toString() 
 						  + "vs" 
@@ -410,8 +415,12 @@ public class Field {
 
 		public RunThread(int time){
 			this.time = time*time;
+
 			totalThrows = 0;
 			this.totalThrowsVec = new ArrayList<>();
+
+			totalSteps = 0;
+			this.totalStepsVec = new ArrayList<>();
 		}
 		
 	    public void run() {
@@ -432,12 +441,15 @@ public class Field {
 				it++;
 				if(gameEnded()){
 					gameCounter++;
+					
 					totalThrowsVec.add(totalThrows);
 					totalThrows = 0;
 
+					totalStepsVec.add(totalSteps);
+					totalSteps = 0;
+
 					updateScore();
 					reset();
-
 				}
 				try {
 					sleep(time);
@@ -450,6 +462,7 @@ public class Field {
 			evaluate();
 			gameLengthVec.clear();
 			totalThrowsVec.clear();
+			totalStepsVec.clear();
 	    }
 
 		private static void duckTape() {
@@ -479,7 +492,11 @@ public class Field {
 			double averageThrows = totalThrowsVec.stream()
 										   .mapToInt(i -> i)
 										   .average()
-										   .orElse(0);							   
+										   .orElse(0);	
+			double averageSteps = totalStepsVec.stream()
+										   .mapToInt(i -> i)
+										   .average()
+										   .orElse(0);								   
 			
 			try {
 				File file = new File(filename);
@@ -501,6 +518,12 @@ public class Field {
 				writer.write("Average #throws: " + averageThrows);
 				writer.newLine();
 				writer.write("#throws vector: " + totalThrowsVec.toString());
+				writer.newLine();
+				writer.newLine();
+
+				writer.write("Average #steps: " + averageSteps);
+				writer.newLine();
+				writer.write("#steps vector: " + totalStepsVec.toString());
 				writer.newLine();
 				writer.newLine();
 

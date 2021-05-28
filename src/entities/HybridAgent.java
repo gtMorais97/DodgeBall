@@ -41,9 +41,10 @@ public class HybridAgent extends NRAgent {
         //deliberative
         if(!reacted){
             if(hasPlan() && !succeededIntention() && possibleIntention()){
-                Action action = plan.remove();
+                Action action = plan.peek();
                 if(isPlanSound(action)){
                     execute(action);
+                    plan.remove();
                 }
                 else buildPlan();
                 planIterations++;
